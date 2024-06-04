@@ -46,7 +46,7 @@ async function run() {
         const options = {
             
             // Include only the `title` and `imdb` fields in the returned document
-            projection: { image:1,title: 1 },
+            projection: { image:1,title: 1,description:1 },
           };
         const result=await servicecollection.findOne(query,options);
         res.send(result);
