@@ -7,9 +7,7 @@ const nodemailer = require("nodemailer");
 const app=express();
 const stripe=require('stripe')('sk_test_51PY5nKRrK5w1Alg4U9TiSmveJoHsSCUEoG5hxvOMacsQi9XxAgxACqANDwPe9mKhQKcroqeeJFxMs5ffGzCMBS0g00hyIrpFpU')
 const port=process.env.PORT || 5000;
-const admin = require('firebase-admin');
-const serviceAccount = require('./attentionnetwork-860bc-firebase-adminsdk-45qja-40330006e6.json');
-// const mg = require('nodemailer-mailgun-transport');
+
 
 
 //middleware
@@ -19,9 +17,9 @@ app.use(express.json());
 // console.log(process.env.ACCESS_TOKEN_SECRET);
 
 // Initialize Firebase Admin SDK
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
 
 //send email
 const transporter = nodemailer.createTransport({
@@ -198,6 +196,7 @@ async function run() {
     const result=userscollection.insertOne(user);
     res.send(result);
   })
+
 
   app.get('/users/admin/:email',verifyjwt,async(req,res)=>{
 
