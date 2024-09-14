@@ -307,13 +307,13 @@ async function run() {
       const result=await paymentcollection.insertOne(payment);
       const query={_id: {$in: payment.bookingsitems.map(id=>new ObjectId(id))}}
       const deleteResult=await bookingcollection.deleteMany(query);
-      transporter.sendMail({
-    from: 'nazmussakibapurbo@gmail.com', // sender address
-    to:payment.email, // list of receivers
-    subject: "Your payment ", // Subject line
-    text: "Hello world?", // plain text body
-    html: "<b>Hello world?</b>", // html body
-  });
+    //   transporter.sendMail({
+    // from: 'nazmussakibapurbo@gmail.com', // sender address
+    // to:payment.email, // list of receivers
+    // subject: "Your payment ", // Subject line
+    // text: "Hello world?", // plain text body
+    // html: "<b>Hello world?</b>", // html body
+  // });
 
       res.send({result,deleteResult});
     })
@@ -327,6 +327,23 @@ async function run() {
         res.status(500).send({ error: true, message: 'Internal server error' });
       }
     });
+
+    //userdashboard payment
+    
+    app.get('/paymentdetails',verifyjwt,async(req,res)=>{
+      // console.log(req.headers.authorization);
+      const decoded=req.decoded;
+      if(decoded.email !==req.query.email){
+        return res.status(403).send({error:1,message:"forbidden access"})
+      }
+      // console.log("came back",decoded);
+        let query={};
+        if(req.query?.email){
+          query={email: req.query.email}
+        }
+        const result=await paymentcollection.find(query).toArray();
+        res.send(result);
+    })
     
 
 
