@@ -223,6 +223,21 @@ async function run() {
     res.send(result)
   })
 
+ 
+
+  app.delete('/allusers/:id', async(req,res)=>{
+
+    const id=req.params.id;
+    const query={_id: new ObjectId(id) };
+   
+    const result=await userscollection.deleteOne(query);
+    res.send(result);
+
+});
+  
+
+  //services
+
     app.get('/services',async(req,res)=>{
 
         const cursor=servicecollection.find();
@@ -239,7 +254,7 @@ async function run() {
         const options = {
             
            
-            projection: { image:1,title: 1,description:1,price:1 },
+            projection: { image:1,title: 1,description:1,price:1, facilities: 1, foodItems: 1  },
           };
         const result=await servicecollection.findOne(query,options);
         res.send(result);
@@ -250,6 +265,7 @@ async function run() {
     const result=await bookingcollection.find().toArray();
     res.send(result);
   })
+
     app.get('/bookings',verifyjwt,async(req,res)=>{
       // console.log(req.headers.authorization);
       const decoded=req.decoded;
@@ -282,6 +298,19 @@ async function run() {
 
     });
 
+    app.patch('/bookings/admin/:id',async(req,res)=>{
+      const id=req.params.id;
+      const filter={_id: new ObjectId(id)};
+      const updateDoc={
+        $set:{
+          status: 'accepted'
+        }
+      }
+  
+      const result=await bookingcollection.updateOne(filter,updateDoc);
+      res.send(result)
+    })
+
     
 
     //payment intent
@@ -307,20 +336,25 @@ async function run() {
       const result=await paymentcollection.insertOne(payment);
       const query={_id: {$in: payment.bookingsitems.map(id=>new ObjectId(id))}}
       const deleteResult=await bookingcollection.deleteMany(query);
-    //   transporter.sendMail({
-    // from: 'nazmussakibapurbo@gmail.com', // sender address
-    // to:payment.email, // list of receivers
-    // subject: "Your payment ", // Subject line
-    // text: "Hello world?", // plain text body
-    // html: "<b>Hello world?</b>", // html body
-  // });
+      transporter.sendMail({
+    from: 'nazmussakibapurbo@gmail.com', // sender address
+    to:payment.email, // list of receivers
+    subject: "Your payment ", // Subject line
+    text: "Hello world?", // plain text body
+    html: "<b>Hello world?</b>", // html body
+  });
 
       res.send({result,deleteResult});
     })
 
     app.get('/payments', async (req, res) => {
       try {
+        // const decoded=req.decoded;
+        // if(decoded.email !==req.query.email){
+        //   return res.status(403).send({error:1,message:"forbidden access"})
+        // }
         const payments = await paymentcollection.find().toArray();
+        // console.log(payments);
         res.send(payments);
       } catch (error) {
         console.error('Error fetching payments:', error);
