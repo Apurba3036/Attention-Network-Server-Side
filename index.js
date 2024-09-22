@@ -379,6 +379,37 @@ async function run() {
         res.send(result);
     })
     
+    app.get('/singlepayment/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+  
+      const options = {
+          projection: {
+              email: 1,
+              transactionid: 1,
+              totalprice: 1,
+              quantity: 1,
+              bookingsitems: 1,
+              serviceitems: 1,
+              itemsNames: 1,
+              date: 1,
+              service_date: 1,
+              order_status: 1,
+          },
+      };
+  
+      try {
+          const result = await paymentcollection.findOne(query, options);
+          if (result) {
+              res.send(result);
+          } else {
+              res.status(404).send({ message: 'Payment not found' });
+          }
+      } catch (error) {
+          res.status(500).send({ error: 'Failed to retrieve payment details' });
+      }
+  });
+  
 
 
     
