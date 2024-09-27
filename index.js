@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const nodemailer = require("nodemailer");
+const { default: axios } = require('axios');
 const app=express();
 const stripe=require('stripe')('sk_test_51PY5nKRrK5w1Alg4U9TiSmveJoHsSCUEoG5hxvOMacsQi9XxAgxACqANDwPe9mKhQKcroqeeJFxMs5ffGzCMBS0g00hyIrpFpU')
 const port=process.env.PORT || 5000;
@@ -14,6 +15,7 @@ const port=process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded());
 // console.log(process.env.ACCESS_TOKEN_SECRET);
 
 // Initialize Firebase Admin SDK
@@ -314,6 +316,76 @@ async function run() {
     
 
     //payment intent
+    app.post('/create-payment',async(req,res)=>{
+      const trid=new ObjectId().toString();
+      const paymentinfo=req.body
+      // console.log(paymentinfo);
+      const data = {
+        store_id:"atten66f2d7b8551b1",
+        store_passwd:"atten66f2d7b8551b1@ssl",
+        total_amount: paymentinfo.totalprice,
+        currency: 'BDT',
+        tran_id: `ssl-${trid}`,
+        success_url: 'http://localhost:5000/success-payment',
+        fail_url: 'http://localhost:3030/fail',
+        cancel_url: 'http://localhost:3030/cancel',
+        ipn_url: 'http://localhost:3030/ipn',
+        shipping_method: 'Courier',
+        product_name: 'Hall Booking',
+        product_category: 'Service',
+        product_profile: 'general',
+        cus_name: 'Customer Name',
+        cus_email: 'customer@example.com',
+        cus_add1: 'Dhaka',
+        cus_add2: 'Dhaka',
+        cus_city: 'Dhaka',
+        cus_state: 'Dhaka',
+        cus_postcode: '1000',
+        cus_country: 'Bangladesh',
+        cus_phone: '01711111111',
+        cus_fax: '01711111111',
+        shipping_method:"NO",
+        multi_card_name:"mastercard,visacard,amexcard",
+       value_a:"ref001_A&",
+       value_b:"ref002_B&",
+      value_c:"ref003_C&",
+       value_d:"ref004_D",
+    };
+
+    const response=await axios({
+      method:"POST",
+      url: "https://sandbox.sslcommerz.com/gwprocess/v4/api.php",
+      data: data,
+      headers:{
+        "Content-Type":"application/x-www-form-urlencoded",
+      }
+
+    })
+     
+    //  console.log(response);
+      res.send({
+        paymentUrl: response.data.GatewayPageURL
+      });
+      const paymentWithTranId = {
+        transactionid: trid,
+        ...paymentinfo
+      };
+    if(response){
+        const result=await paymentcollection.insertOne(paymentWithTranId);
+        const query={_id: {$in: paymentWithTranId.bookingsitems.map(id=>new ObjectId(id))}}
+        const deleteResult=await bookingcollection.deleteMany(query);
+      //  res.send({result,deleteResult});
+    }
+
+    })
+
+    app.post('/success-payment',async(req,res)=>{
+      const payment=req.body;
+     
+      if(payment.status==="VALID"){
+        res.redirect("http://localhost:5173/success")
+      }
+    })
 
     app.post('/create-payment-intent',async(req,res)=>{
       const {price}=req.body;
