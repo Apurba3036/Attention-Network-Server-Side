@@ -310,6 +310,7 @@ async function run() {
       }
   
       const result=await bookingcollection.updateOne(filter,updateDoc);
+      console.log(result);
       res.send(result)
     })
 
@@ -370,6 +371,7 @@ async function run() {
         transactionid: trid,
         ...paymentinfo
       };
+      
     if(response){
         const result=await paymentcollection.insertOne(paymentWithTranId);
         const query={_id: {$in: paymentWithTranId.bookingsitems.map(id=>new ObjectId(id))}}
